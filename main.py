@@ -24,7 +24,9 @@ if "messages" not in st.session_state:
 
 # Set up sidebar
 with st.sidebar:
-    system_message = st.text_area(label="System role (optional)", placeholder="System message..", height=100)
+    system_message = st.text_area(
+        label="System role (optional)", placeholder="System message..", height=100
+    )
     user_prompt = st.text_area(
         label="Send a message", placeholder="Message AI Assistant..", height=200
     )
@@ -41,4 +43,19 @@ with st.sidebar:
 
         st.session_state.messages.append(AIMessage(content=response.content))
 
-st.session_state.messages
+# If there are no messages in the session state, add a system message
+# Add default system message if the user didn't enter one
+if len(st.session_state.messages) >= 1:
+    if not isinstance(st.session_state.messages[0], SystemMessage):
+        st.session_state.messages.insert(
+            0, SystemMessage(content="You are a helpful assistant.")
+        )
+
+# Iterate over the messages in the session state
+for i, msg in enumerate(st.session_state.messages):
+    # If the message is from the user
+    if isinstance(msg, HumanMessage):
+        message(msg.content, is_user=True, key=f"msg_{i}")
+    # If the message is from the AI assistant
+    elif isinstance(msg, AIMessage):
+        message(msg.content, is_user=False, key=f"msg_{i}")
